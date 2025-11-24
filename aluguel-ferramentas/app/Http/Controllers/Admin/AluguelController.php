@@ -82,14 +82,14 @@ class AluguelController extends Controller
         'ferramentas.*.quantidade' => 'required|integer|min:1',
     ]);
 
-    // 🔹 1) Checar se é "outro usuário"
+    // 1) Criar usuário se for "outro"
     if ($request->user_id === "outro") {
 
         $nome = trim($request->novo_usuario);
 
         $novoUser = User::create([
             'name' => $nome,
-            'email' => strtolower(str_replace(' ', '', $nome))."@temporario.local",
+            'email' => strtolower(str_replace(' ', '', $nome)) . "@temporario.local",
             'password' => Hash::make('123456'),
             'role' => 'membro'
         ]);
@@ -100,10 +100,10 @@ class AluguelController extends Controller
         $userId = $request->user_id;
     }
 
-    // 🔹 2) calcular data prevista
+    // 2) calcular data prevista
     $dataPrevista = $this->calcularDataPrevista($request->data_retirada, $request->alugar_por);
 
-    // 🔹 3) Criar aluguel
+    // 3) Criar o ALUGUEL
     $aluguel = Aluguel::create([
         'casa_id' => $request->casa_id,
         'user_id' => $userId,
@@ -112,6 +112,30 @@ class AluguelController extends Controller
         'data_prevista' => $dataPrevista,
         'status' => 'ativo',
     ]);
+
+    // 4) SALVAR ITENS
+    foreach ($request->ferramentas as $item) {
+        AluguelItem::create([
+            'aluguel_id' => $aluguel->id,
+            'ferramenta_id' => $item['id'],
+            'quantidade' => $item['quantidade'],
+            'observacao' => $item['observacao'] ?? null,
+        ]);
+    }
+
+    // 5) Redirect
+    return redirect()
+        ->route('alugueis.show', $aluguel->id)
+        ->with('success', 'Aluguel criado com sucesso!');
+}
+
+
+public function show(Aluguel $aluguel)
+{
+    // Carregar os relacionamentos necessários
+    $aluguel->load(['casa', 'usuario', 'responsavel', 'itens.ferramenta']);
+
+    return view('admin.alugueis.show', compact('aluguel'));
 }
 
     public function devolver(Aluguel $aluguel)
