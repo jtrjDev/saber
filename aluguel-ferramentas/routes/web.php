@@ -6,7 +6,10 @@ use App\Http\Controllers\Admin\CasaController;
 use App\Http\Controllers\Admin\FerramentaController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\AluguelController;
+use App\Http\Controllers\Admin\ContratoController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\AluguelItemController;
+
 
 Route::get('/', function () {
     return view('welcome');
@@ -25,24 +28,46 @@ Route::middleware('auth')->group(function () {
 });
 
 // Rotas administrativas (somente ADMIN)
+// Rotas administrativas (somente ADMIN)
 Route::middleware(['auth', 'role:admin'])
     ->prefix('admin')
     ->group(function () {
 
         Route::resource('setores', SetorController::class)
-    ->parameters([
-        'setores' => 'setor'
-    ]);
+            ->parameters(['setores' => 'setor']);
 
         Route::resource('casas', CasaController::class);
         Route::resource('usuarios', UserController::class)
             ->parameters(['usuarios' => 'usuario']);
-    
-    });
-    Route::resource('ferramentas', FerramentaController::class);
-    Route::resource('alugueis', AluguelController::class);
 
-Route::post('alugueis/{aluguel}/devolver', [AluguelController::class, 'devolver'])
-    ->name('alugueis.devolver');
+        // Ferramentas dentro de admin
+        Route::resource('ferramentas', FerramentaController::class);
+
+        Route::resource('alugueis', AluguelController::class)
+                    ->parameters(['alugueis' => 'aluguel']);
+
+        Route::post('alugueis/{aluguel}/devolver', 
+            [AluguelController::class, 'devolver']
+        )->name('alugueis.devolver');
+
+         Route::get('contrato/gerar/{aluguel}', [ContratoController::class, 'gerar'])
+        ->name('contrato.gerar');
+
+    Route::get('contratos/{contrato}', [ContratoController::class, 'show'])
+        ->name('contratos.show');
+
+       Route::post('alugueis/item/{aluguelItem}/devolver', [AluguelItemController::class, 'devolver'])
+    ->name('alugueis.item.devolver');
+
+Route::post('alugueis/item/{aluguelItem}/renovar', [AluguelItemController::class, 'renovar'])
+    ->name('alugueis.item.renovar');
+
+Route::post('alugueis/item/{aluguelItem}/perdido', [AluguelItemController::class, 'perdido'])
+    ->name('alugueis.item.perdido');
+
+
+});
+
+
 
 require __DIR__.'/auth.php';

@@ -37,4 +37,23 @@ class Aluguel extends Model
     {
         return $this->hasMany(AluguelItem::class);
     }
+
+    public function contrato()
+    {
+        return $this->hasOne(Contrato::class);
+    }
+    public function getStatusAttribute($value)
+    {
+        $statusOriginal = $this->attributes['status'] ?? $value;
+
+        // Se ainda não devolveu e está atrasado
+        if ($statusOriginal !== 'devolvido' && now()->gt($this->data_prevista)) {
+            return 'atrasado';
+        }
+
+        return $statusOriginal;
+    }
+
+
+
 }

@@ -71,72 +71,129 @@ class AluguelController extends Controller
     }
 
     public function store(Request $request)
-{
-    $request->validate([
-        'casa_id' => 'required|exists:casas,id',
-        'responsavel_id' => 'required|exists:users,id',
-        'data_retirada' => 'required|date',
-        'alugar_por' => 'required|string',
-        'ferramentas' => 'required|array|min:1',
-        'ferramentas.*.id' => 'required|exists:ferramentas,id',
-        'ferramentas.*.quantidade' => 'required|integer|min:1',
-    ]);
-
-    // 1) Criar usuário se for "outro"
-    if ($request->user_id === "outro") {
-
-        $nome = trim($request->novo_usuario);
-
-        $novoUser = User::create([
-            'name' => $nome,
-            'email' => strtolower(str_replace(' ', '', $nome)) . "@temporario.local",
-            'password' => Hash::make('123456'),
-            'role' => 'membro'
+    {
+        $request->validate([
+            'casa_id' => 'required|exists:casas,id',
+            'responsavel_id' => 'required|exists:users,id',
+            'data_retirada' => 'required|date',
+            'alugar_por' => 'required|string',
+            'ferramentas' => 'required|array|min:1',
+            'ferramentas.*.id' => 'required|exists:ferramentas,id',
+            'ferramentas.*.quantidade' => 'required|integer|min:1',
         ]);
 
-        $userId = $novoUser->id;
+        // 1) Criar usuário caso seja "Outro"
+        if ($request->user_id === "outro") {
 
-    } else {
-        $userId = $request->user_id;
-    }
+            $nome = trim($request->novo_usuario);
 
-    // 2) calcular data prevista
-    $dataPrevista = $this->calcularDataPrevista($request->data_retirada, $request->alugar_por);
+            $novoUser = User::create([
+                'name' => $nome,
+                'email' => strtolower(str_replace(' ', '', $nome))."@temporario.local",
+                'password' => Hash::make('123456'),
+                'role' => 'membro'
+            ]);
 
-    // 3) Criar o ALUGUEL
-    $aluguel = Aluguel::create([
-        'casa_id' => $request->casa_id,
-        'user_id' => $userId,
-        'responsavel_id' => $request->responsavel_id,
-        'data_retirada' => $request->data_retirada,
-        'data_prevista' => $dataPrevista,
-        'status' => 'ativo',
-    ]);
+            $userId = $novoUser->id;
 
-    // 4) SALVAR ITENS
-    foreach ($request->ferramentas as $item) {
-        AluguelItem::create([
-            'aluguel_id' => $aluguel->id,
-            'ferramenta_id' => $item['id'],
-            'quantidade' => $item['quantidade'],
-            'observacao' => $item['observacao'] ?? null,
+        } else {
+            $userId = $request->user_id;
+        }
+
+        // 2) Calcular data prevista
+        $dataPrevista = $this->calcularDataPrevista($request->data_retirada, $request->alugar_por);
+
+        // 3) Criar o aluguel
+        $aluguel = Aluguel::create([
+            'casa_id' => $request->casa_id,
+            'user_id' => $userId,
+            'responsavel_id' => $request->responsavel_id,
+            'data_retirada' => $request->data_retirada,
+            'data_prevista' => $dataPrevista,
+            'status' => 'ativo',
         ]);
+
+        // 4) Criar itens do aluguel
+        foreach ($request->ferramentas as $item) {
+            AluguelItem::create([
+                'aluguel_id' => $aluguel->id,
+                'ferramenta_id' => $item['id'],
+                'quantidade' => $item['quantidade'],
+                'observacao' => $item['observacao'] ?? null,
+            ]);
+        }
+
+        // 5) Redirecionar para o show
+        return redirect()->route('alugueis.show', $aluguel->id)
+                        ->with('success', 'Aluguel criado com sucesso!');
     }
 
-    // 5) Redirect
-    return redirect()
-        ->route('alugueis.show', $aluguel->id)
-        ->with('success', 'Aluguel criado com sucesso!');
-}
 
 
 public function show(Aluguel $aluguel)
 {
     // Carregar os relacionamentos necessários
     $aluguel->load(['casa', 'usuario', 'responsavel', 'itens.ferramenta']);
-
     return view('admin.alugueis.show', compact('aluguel'));
 }
+
+
+
+    public function edit(Aluguel $aluguel)
+{
+    $aluguel->load(['itens', 'itens.ferramenta']);
+
+    $casas = Casa::orderBy('nome')->get();
+    $responsaveis = User::where('role','responsavel_ferramentas')->get();
+    $usuarios = User::whereIn('role', ['membro', 'gestor_obra'])->get();
+    $ferramentas = Ferramenta::orderBy('nome')->get();
+
+    return view('admin.alugueis.edit', compact(
+        'aluguel', 'casas', 'responsaveis', 'usuarios', 'ferramentas'
+    ));
+}
+
+public function update(Request $request, Aluguel $aluguel)
+{
+    $request->validate([
+        'casa_id' => 'required|exists:casas,id',
+        'user_id' => 'required',
+        'responsavel_id' => 'required|exists:users,id',
+        'data_retirada' => 'required|date',
+        'alugar_por' => 'required|string',
+
+        // itens
+        'ferramentas.*.id' => 'required|exists:ferramentas,id',
+        'ferramentas.*.quantidade' => 'required|integer|min:1',
+    ]);
+
+    // Atualiza dados gerais
+    $aluguel->update([
+        'casa_id' => $request->casa_id,
+        'user_id' => $request->user_id,
+        'responsavel_id' => $request->responsavel_id,
+        'data_retirada' => $request->data_retirada,
+        'data_prevista' => $this->calcularDataPrevista($request->data_retirada, $request->alugar_por),
+        'status' => $aluguel->status, // não alteramos aqui
+    ]);
+
+    // 🔥 Atualiza itens
+    $aluguel->itens()->delete(); // limpa tudo e insere de novo
+
+    foreach ($request->ferramentas as $item) {
+        $aluguel->itens()->create([
+            'ferramenta_id' => $item['id'],
+            'quantidade' => $item['quantidade'],
+            'observacao' => $item['observacao'] ?? null,
+        ]);
+    }
+
+    return redirect()
+        ->route('alugueis.show', $aluguel)
+        ->with('success', 'Aluguel atualizado com sucesso!');
+}
+
+
 
     public function devolver(Aluguel $aluguel)
     {

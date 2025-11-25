@@ -58,17 +58,22 @@
 
                     {{-- Situação --}}
                     <td class="px-6 py-4">
-                        @php
-                            $cores = [
-                                'ativo' => 'bg-blue-200 text-blue-900',
-                                'devolvido' => 'bg-green-200 text-green-900',
-                                'atrasado' => 'bg-red-200 text-red-900',
-                            ];
-                        @endphp
+                      @php
+                        $cores = [
+                            'ativo'     => 'bg-blue-200 text-blue-900',
+                            'parcial'   => 'bg-yellow-200 text-yellow-900',
+                            'devolvido' => 'bg-green-200 text-green-900',
+                            'atrasado'  => 'bg-red-200 text-red-900',
+                        ];
 
-                        <span class="px-2 py-1 text-xs font-semibold rounded {{ $cores[$a->status] }}">
-                            {{ ucfirst($a->status) }}
-                        </span>
+                        // Se vier um status inesperado
+                        $cor = $cores[$a->status] ?? 'bg-gray-200 text-gray-800';
+                    @endphp
+
+                    <span class="px-2 py-1 text-xs font-semibold rounded {{ $cor }}">
+                        {{ ucfirst($a->status) }}
+                    </span>
+
                     </td>
 
                     {{-- Ações --}}
@@ -81,6 +86,11 @@
                                 href="{{ route('alugueis.show', $a) }}">
                                 Ver
                             </x-ui.button-secondary>
+
+                             {{-- Ver Detalhes --}}
+                            <x-ui.button-warning href="{{ route('alugueis.edit', $a) }}">
+                                Editar
+                            </x-ui.button-warning>
 
                             {{-- Devolver --}}
                             @if($a->status === 'ativo')
