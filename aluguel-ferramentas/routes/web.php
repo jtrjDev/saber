@@ -7,8 +7,9 @@ use App\Http\Controllers\Admin\FerramentaController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\AluguelController;
 use App\Http\Controllers\Admin\ContratoController;
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\AluguelItemController;
+use App\Http\Controllers\Admin\AlmoxarifadoController;
+use Illuminate\Support\Facades\Route;
 
 
 Route::get('/', function () {
@@ -27,6 +28,12 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
+Route::middleware(['auth', 'role:responsavel_ferramentas'])
+    ->prefix('admin')
+    ->group(function () {
+        Route::get('/almoxarifado', [AlmoxarifadoController::class, 'index'])
+            ->name('almox.dashboard');
+    });
 // Rotas administrativas (somente ADMIN)
 // Rotas administrativas (somente ADMIN)
 Route::middleware(['auth', 'role:admin'])
