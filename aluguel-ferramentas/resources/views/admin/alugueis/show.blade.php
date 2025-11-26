@@ -131,14 +131,11 @@
         <div class="mt-2 flex gap-2">
 
             {{-- DEVOLVER --}}
-            <form action="{{ route('alugueis.item.devolver', $item) }}"
-
-                method="POST">
-                @csrf
-                <button class="px-3 py-1 text-xs bg-green-600 text-white rounded">
+            <a href="{{ route('alugueis.devolver', $aluguel->id) }}"
+                class="px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700">
                     Devolver
-                </button>
-            </form>
+            </a>
+
 
             {{-- RENOVAR --}}
             <form action="{{ route('alugueis.item.renovar', $item) }}"

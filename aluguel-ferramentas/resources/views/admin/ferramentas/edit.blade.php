@@ -6,8 +6,17 @@
         </h1>
     </header>
 
-    <div class="bg-white shadow-lg rounded-xl p-6 lg:p-8 max-w-4xl mx-auto">
 
+    <div class="bg-white shadow-lg rounded-xl p-6 lg:p-8 max-w-4xl mx-auto">
+@if($ferramenta->estado === 'manutenção')
+    <div class="mb-6 p-4 bg-orange-100 border-l-4 border-orange-500 rounded">
+        <h2 class="font-bold text-orange-700">⚠ Ferramenta em Manutenção</h2>
+        <p class="text-orange-600 text-sm">
+            Esta ferramenta está marcada como <strong>em manutenção</strong>.
+            Ela não poderá ser alugada até que o estado seja alterado.
+        </p>
+    </div>
+@endif
         <form action="{{ route('ferramentas.update', $ferramenta) }}" method="POST" enctype="multipart/form-data">
             @csrf
             @method('PUT')
@@ -39,6 +48,7 @@
                 <option value="manutenção" @selected($ferramenta->estado === 'manutenção')>Manutenção</option>
                 <option value="quebrado" @selected($ferramenta->estado === 'quebrado')>Quebrado</option>
             </x-ui.select>
+
 
             {{-- Valor de compra --}}
             <x-ui.input 

@@ -66,21 +66,27 @@
                     <td class="px-6 py-4">{{ $f->setor->nome }}</td>
 
                     <td class="px-6 py-4 capitalize">
-                        @php
-                            $cores = [
-                                    'nova'        => 'bg-green-200 text-green-900',
-                                    'boa'         => 'bg-blue-200 text-blue-900',
-                                    'ruim'        => 'bg-yellow-200 text-yellow-900',
-                                    'manutenção'  => 'bg-orange-200 text-orange-900',
-                                    'quebrado'    => 'bg-red-200 text-red-900',
-                                ];
-                        @endphp
+    @php
+        $cores = [
+            'bom'         => 'bg-blue-200 text-blue-900',
+            'ruim'        => 'bg-yellow-200 text-yellow-900',
+            'manutenção'  => 'bg-orange-200 text-orange-900',
+            'quebrado'    => 'bg-red-200 text-red-900',
+        ];
+    @endphp
 
+    <span class="px-2 py-1 rounded text-xs font-semibold {{ $cores[$f->estado] ?? 'bg-gray-200 text-gray-800' }}">
+        {{ $f->estado }}
+    </span>
 
-                        <span class="px-2 py-1 rounded text-xs font-semibold {{ $cores[$f->estado] }}">
-                            {{ $f->estado }}
-                        </span>
-                    </td>
+    {{-- Indicativo especial para manutenção --}}
+    @if($f->estado === 'manutenção')
+        <span class="ml-2 text-[10px] px-2 py-1 rounded-full bg-orange-500 text-white font-bold">
+            ⚠ Em Manutenção
+        </span>
+    @endif
+</td>
+
 
                     <td class="px-6 py-4 text-center">
                         <div class="inline-flex space-x-2">

@@ -23,12 +23,13 @@
             </x-ui.select>
 
             {{-- Estado --}}
-            <x-ui.select name="estado" label="Estado" required>
-                <option value="bom">Bom</option>
-                <option value="ruim">Ruim</option>
-                <option value="manutenção">Manutenção</option>
-                <option value="quebrado">Quebrado</option>
-            </x-ui.select>
+                <x-ui.select name="estado" label="Estado" required>
+                    <option value="bom" @selected($ferramenta->estado === 'bom')>Bom</option>
+                    <option value="ruim" @selected($ferramenta->estado === 'ruim')>Ruim</option>
+                    <option value="manutenção" @selected($ferramenta->estado === 'manutenção')>Manutenção</option>
+                    <option value="quebrado" @selected($ferramenta->estado === 'quebrado')>Quebrado</option>
+                </x-ui.select>
+
 
             {{-- Valor de compra --}}
             <x-ui.input 

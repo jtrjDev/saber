@@ -98,7 +98,6 @@
                     <thead class="bg-gray-50">
                         <tr>
                             <th class="px-4 py-2 text-left text-sm font-medium">Ferramenta</th>
-                            <th class="px-4 py-2 text-left text-sm font-medium">Qtd</th>
                             <th class="px-4 py-2 text-left text-sm font-medium">Observação</th>
                             <th class="px-4 py-2"></th>
                         </tr>
@@ -166,20 +165,12 @@
                             class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
                             <option value="">Selecione…</option>
                             @foreach($ferramentas as $f)
-                                <option value="{{ $f->id }}">{{ $f->nome }} — ({{ $f->estado }})</option>
+                                @if(!$f->em_manutencao)
+                                    <option value="{{ $f->id }}">{{ $f->nome }}</option>
+                                @endif
                             @endforeach
-                        </select>
-                    </td>
 
-                    <td class="px-4 py-2">
-                        <input 
-                            type="number" 
-                            name="ferramentas[${index}][quantidade]" 
-                            min="1"
-                            value="1"
-                            required
-                            class="w-20 border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
-                        />
+                        </select>
                     </td>
 
                     <td class="px-4 py-2">

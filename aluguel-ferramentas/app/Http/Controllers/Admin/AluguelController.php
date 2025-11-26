@@ -65,9 +65,17 @@ class AluguelController extends Controller
         $usuarios = User::where('role','membro')
                         ->orWhere('role','gestor_obra')
                         ->get();
-        $ferramentas = Ferramenta::whereDoesntHave('itens.aluguel', function($q) {
-            $q->whereNull('data_devolucao'); // ainda não devolveu
-        })->orderBy('nome')->get();
+        $ferramentas = Ferramenta::whereIn('estado', ['boa', 'nova'])
+    ->whereDoesntHave('itens', function($q){
+        // Se existe item vinculado a aluguel que não devolveu → não pode
+        $q->whereHas('aluguel', function($sub){
+            $sub->whereNull('data_devolucao');
+        });
+    })
+    ->orderBy('nome')
+    ->get();
+
+
 
 
         return view('admin.alugueis.create', compact('casas','responsaveis','usuarios','ferramentas'));
@@ -82,7 +90,7 @@ class AluguelController extends Controller
             'alugar_por' => 'required|string',
             'ferramentas' => 'required|array|min:1',
             'ferramentas.*.id' => 'required|exists:ferramentas,id',
-            'ferramentas.*.quantidade' => 'required|integer|min:1',
+            
         ]);
 
         // 1) Criar usuário caso seja "Outro"
@@ -121,7 +129,7 @@ class AluguelController extends Controller
             AluguelItem::create([
                 'aluguel_id' => $aluguel->id,
                 'ferramenta_id' => $item['id'],
-                'quantidade' => $item['quantidade'],
+                'quantidade' => $item->quantidade ?? 1,
                 'observacao' => $item['observacao'] ?? null,
             ]);
         }
@@ -151,14 +159,20 @@ public function show(Aluguel $aluguel)
     $usuarios = User::whereIn('role', ['membro', 'gestor_obra'])->get();
     $itensAtuais = $aluguel->itens->pluck('ferramenta_id')->toArray();
 
-    $ferramentas = Ferramenta::where(function($query) use ($itensAtuais) {
-        $query->whereDoesntHave('itens.aluguel', function($q) {
-            $q->whereNull('data_devolucao');
-        })
-        ->orWhereIn('id', $itensAtuais); // permitir ferramentas já usadas no aluguel
+   $ferramentas = Ferramenta::where(function($query) use ($itensAtuais) {
+        $query
+            ->whereIn('estado', ['boa', 'nova'])
+            ->whereDoesntHave('itens', function($q){
+                $q->whereHas('aluguel', function($sub){
+                    $sub->whereNull('data_devolucao');
+                });
+            })
+            ->orWhereIn('id', $itensAtuais); // permitir as que já pertencem ao aluguel
     })
     ->orderBy('nome')
     ->get();
+
+
 
     return view('admin.alugueis.edit', compact(
         'aluguel', 'casas', 'responsaveis', 'usuarios', 'ferramentas'
@@ -176,7 +190,7 @@ public function update(Request $request, Aluguel $aluguel)
 
         // itens
         'ferramentas.*.id' => 'required|exists:ferramentas,id',
-        'ferramentas.*.quantidade' => 'required|integer|min:1',
+        
     ]);
 
     // Atualiza dados gerais
@@ -195,7 +209,7 @@ public function update(Request $request, Aluguel $aluguel)
     foreach ($request->ferramentas as $item) {
         $aluguel->itens()->create([
             'ferramenta_id' => $item['id'],
-            'quantidade' => $item['quantidade'],
+            'quantidade' => $item->quantidade ?? 1,
             'observacao' => $item['observacao'] ?? null,
         ]);
     }
@@ -205,15 +219,51 @@ public function update(Request $request, Aluguel $aluguel)
         ->with('success', 'Aluguel atualizado com sucesso!');
 }
 
+public function formDevolver(Aluguel $aluguel)
+{
+    $responsaveis = User::where('role', 'responsavel_ferramentas')->get();
+    return view('admin.alugueis.devolver', compact('aluguel','responsaveis'));
+}
 
+public function devolverPost(Request $request, Aluguel $aluguel)
+{
+    // Atualiza o aluguel
+    $aluguel->update([
+        'data_devolucao' => now(),
+        'status' => 'devolvido',
+    ]);
 
-    public function devolver(Aluguel $aluguel)
-    {
-        $aluguel->update([
-            'data_devolucao_real' => now(),
-            'status' => 'devolvido'
+    // Pega itens enviados
+    $dadosItens = $request->itens; // <- IMPORTANTÍSSIMO
+
+    // Atualiza TODOS os itens
+    foreach ($aluguel->itens as $index => $item) {
+
+        $item->update(['status' => 'devolvido']);
+
+        // Verifica o estado informado pelo usuário
+        $estado = $dadosItens[$index]['estado'] ?? 'bom';
+
+        // Atualiza estado da ferramenta corretamente
+        $item->ferramenta->update([
+            'estado' => $estado === 'manutencao' ? 'manutenção' : $estado
         ]);
 
-        return back()->with('success','Ferramentas devolvidas!');
+        // Observação da manutenção
+        if (!empty($dadosItens[$index]['observacao'])) {
+            $item->update([
+                'observacao' => $dadosItens[$index]['observacao']
+            ]);
+        }
     }
+
+    return redirect()
+        ->route('alugueis.show', $aluguel->id)
+        ->with('success', 'Aluguel devolvido com sucesso!');
+}
+
+
+
+
+ 
 }

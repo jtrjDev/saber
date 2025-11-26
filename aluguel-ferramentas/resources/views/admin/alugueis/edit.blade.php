@@ -83,7 +83,6 @@
                     <thead>
                         <tr>
                             <th class="px-4 py-2 text-left">Ferramenta</th>
-                            <th class="px-4 py-2 text-left">Qtd</th>
                             <th class="px-4 py-2 text-left">Obs</th>
                             <th></th>
                         </tr>
@@ -169,11 +168,6 @@
                                 <option value="{{ $f->id }}">{{ $f->nome }}</option>
                             @endforeach
                         </select>
-                    </td>
-
-                    <td class="px-4 py-2">
-                        <input type="number" min="1" name="ferramentas[${index}][quantidade]"
-                            value="1" class="w-20 border-gray-300 rounded-lg" required />
                     </td>
 
                     <td class="px-4 py-2">
