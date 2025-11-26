@@ -19,4 +19,10 @@ class Ferramenta extends Model
     {
         return $this->belongsTo(Setor::class);
     }
+
+    public function itens()
+{
+    return $this->hasMany(\App\Models\AluguelItem::class, 'ferramenta_id');
+}
+
 }

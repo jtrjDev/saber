@@ -68,12 +68,14 @@
                     <td class="px-6 py-4 capitalize">
                         @php
                             $cores = [
-                                'bom' => 'bg-green-200 text-green-900',
-                                'ruim' => 'bg-yellow-200 text-yellow-900',
-                                'manutenção' => 'bg-orange-200 text-orange-900',
-                                'quebrado' => 'bg-red-200 text-red-900',
-                            ];
+                                    'nova'        => 'bg-green-200 text-green-900',
+                                    'boa'         => 'bg-blue-200 text-blue-900',
+                                    'ruim'        => 'bg-yellow-200 text-yellow-900',
+                                    'manutenção'  => 'bg-orange-200 text-orange-900',
+                                    'quebrado'    => 'bg-red-200 text-red-900',
+                                ];
                         @endphp
+
 
                         <span class="px-2 py-1 rounded text-xs font-semibold {{ $cores[$f->estado] }}">
                             {{ $f->estado }}

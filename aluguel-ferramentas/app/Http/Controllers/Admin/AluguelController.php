@@ -65,7 +65,10 @@ class AluguelController extends Controller
         $usuarios = User::where('role','membro')
                         ->orWhere('role','gestor_obra')
                         ->get();
-        $ferramentas = Ferramenta::orderBy('nome')->get();
+        $ferramentas = Ferramenta::whereDoesntHave('itens.aluguel', function($q) {
+            $q->whereNull('data_devolucao'); // ainda não devolveu
+        })->orderBy('nome')->get();
+
 
         return view('admin.alugueis.create', compact('casas','responsaveis','usuarios','ferramentas'));
     }
@@ -146,7 +149,16 @@ public function show(Aluguel $aluguel)
     $casas = Casa::orderBy('nome')->get();
     $responsaveis = User::where('role','responsavel_ferramentas')->get();
     $usuarios = User::whereIn('role', ['membro', 'gestor_obra'])->get();
-    $ferramentas = Ferramenta::orderBy('nome')->get();
+    $itensAtuais = $aluguel->itens->pluck('ferramenta_id')->toArray();
+
+    $ferramentas = Ferramenta::where(function($query) use ($itensAtuais) {
+        $query->whereDoesntHave('itens.aluguel', function($q) {
+            $q->whereNull('data_devolucao');
+        })
+        ->orWhereIn('id', $itensAtuais); // permitir ferramentas já usadas no aluguel
+    })
+    ->orderBy('nome')
+    ->get();
 
     return view('admin.alugueis.edit', compact(
         'aluguel', 'casas', 'responsaveis', 'usuarios', 'ferramentas'

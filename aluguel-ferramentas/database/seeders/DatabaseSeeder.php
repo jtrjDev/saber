@@ -18,6 +18,9 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             AdminSeeder::class,
+            SetorSeeder::class,
+            CasaSeeder::class,
+            FerramentaSeeder::class,
         ]);
 
         User::factory()->create([

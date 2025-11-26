@@ -9,72 +9,86 @@ use App\Http\Controllers\Admin\AluguelController;
 use App\Http\Controllers\Admin\ContratoController;
 use App\Http\Controllers\Admin\AluguelItemController;
 use App\Http\Controllers\Admin\AlmoxarifadoController;
+use App\Http\Controllers\Admin\DashboardGeralController;
 use Illuminate\Support\Facades\Route;
 
 
+// -----------------------------
+// Página inicial
+// -----------------------------
 Route::get('/', function () {
     return view('welcome');
 });
 
-// Dashboard acessível para qualquer usuário logado
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
 
-// Perfil do usuário
+// Dashboard único — somente admin e responsável_ferramentas
+Route::middleware(['auth', 'role:admin,responsavel_ferramentas'])
+    ->get('/dashboard', [DashboardGeralController::class, 'index'])
+    ->name('dashboard');
+
+
+// -----------------------------
+// Rotas: Perfil do usuário
+// -----------------------------
 Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::get('/profile',  [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile',[ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile',[ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-Route::middleware(['auth', 'role:responsavel_ferramentas'])
+
+// -----------------------------
+// ALMOXARIFADO (Admin + Responsável Ferramentas)
+// -----------------------------
+Route::middleware(['auth', 'role:responsavel_ferramentas,admin'])
     ->prefix('admin')
     ->group(function () {
         Route::get('/almoxarifado', [AlmoxarifadoController::class, 'index'])
             ->name('almox.dashboard');
     });
-// Rotas administrativas (somente ADMIN)
-// Rotas administrativas (somente ADMIN)
+
+
+// -----------------------------
+// ROTAS ADMINISTRATIVAS (APENAS ADMIN)
+// -----------------------------
 Route::middleware(['auth', 'role:admin'])
     ->prefix('admin')
     ->group(function () {
 
-        Route::resource('setores', SetorController::class)
-            ->parameters(['setores' => 'setor']);
+        Route::resource('setores', SetorController::class)->parameters(['setores' => 'setor']);
 
         Route::resource('casas', CasaController::class);
-        Route::resource('usuarios', UserController::class)
-            ->parameters(['usuarios' => 'usuario']);
 
-        // Ferramentas dentro de admin
+        Route::resource('usuarios', UserController::class)->parameters(['usuarios' => 'usuario']);
+
         Route::resource('ferramentas', FerramentaController::class);
 
         Route::resource('alugueis', AluguelController::class)
-                    ->parameters(['alugueis' => 'aluguel']);
+            ->parameters(['alugueis' => 'aluguel']);
 
-        Route::post('alugueis/{aluguel}/devolver', 
-            [AluguelController::class, 'devolver']
-        )->name('alugueis.devolver');
+        Route::post('alugueis/{aluguel}/devolver', [AluguelController::class, 'devolver'])
+            ->name('alugueis.devolver');
 
-         Route::get('contrato/gerar/{aluguel}', [ContratoController::class, 'gerar'])
-        ->name('contrato.gerar');
+        // Contratos
+        Route::get('contrato/gerar/{aluguel}', [ContratoController::class, 'gerar'])
+            ->name('contrato.gerar');
 
-    Route::get('contratos/{contrato}', [ContratoController::class, 'show'])
-        ->name('contratos.show');
+        Route::get('contratos/{contrato}', [ContratoController::class, 'show'])
+            ->name('contratos.show');
 
-       Route::post('alugueis/item/{aluguelItem}/devolver', [AluguelItemController::class, 'devolver'])
-    ->name('alugueis.item.devolver');
+        // Item do aluguel
+        Route::post('alugueis/item/{aluguelItem}/devolver', [AluguelItemController::class, 'devolver'])
+            ->name('alugueis.item.devolver');
 
-Route::post('alugueis/item/{aluguelItem}/renovar', [AluguelItemController::class, 'renovar'])
-    ->name('alugueis.item.renovar');
+        Route::post('alugueis/item/{aluguelItem}/renovar', [AluguelItemController::class, 'renovar'])
+            ->name('alugueis.item.renovar');
 
-Route::post('alugueis/item/{aluguelItem}/perdido', [AluguelItemController::class, 'perdido'])
-    ->name('alugueis.item.perdido');
-
-
-});
-
+        Route::post('alugueis/item/{aluguelItem}/perdido', [AluguelItemController::class, 'perdido'])
+            ->name('alugueis.item.perdido');
+    });
 
 
+// -----------------------------
+// Auth
+// -----------------------------
 require __DIR__.'/auth.php';

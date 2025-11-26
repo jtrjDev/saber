@@ -19,4 +19,10 @@ class Casa extends Model
     return $this->belongsTo(Setor::class, 'setor_id', 'id');
 }
 
+    public function alugueis()
+{
+    return $this->hasMany(\App\Models\Aluguel::class);
+}
+
+
 }

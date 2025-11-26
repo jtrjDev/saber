@@ -37,5 +37,12 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Setor::class);
     }
+
+    public function alugueis()
+{
+    return $this->hasMany(\App\Models\Aluguel::class, 'user_id');
+}
+
+
 }
 
