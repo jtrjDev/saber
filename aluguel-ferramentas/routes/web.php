@@ -13,7 +13,6 @@ use App\Http\Controllers\Admin\AluguelItemController;
 use App\Http\Controllers\Admin\AlmoxarifadoController;
 use App\Http\Controllers\Admin\DashboardGeralController;
 
-
 // =========================================================
 // Página inicial
 // =========================================================
@@ -21,33 +20,12 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-
 // =========================================================
 // DASHBOARD (Admin + Responsável Ferramentas)
 // =========================================================
 Route::middleware(['auth', 'role:admin,responsavel_ferramentas'])
     ->get('/dashboard', [DashboardGeralController::class, 'index'])
     ->name('dashboard');
-
-
-// =========================================================
-// FORMULÁRIO DE DEVOLUÇÃO — (GET E POST) — Admin e Responsável
-// =========================================================
-Route::middleware(['auth', 'role:admin,responsavel_ferramentas'])
-    ->prefix('admin')
-    ->group(function () {
-        
-        // Exibe tela de devolução
-        Route::get('/alugueis/{aluguel}/devolver', 
-            [AluguelController::class, 'formDevolver']
-        )->name('alugueis.devolver');
-
-        // Processa devolução
-        Route::post('/alugueis/{aluguel}/devolver', 
-            [AluguelController::class, 'devolverPost']
-        )->name('alugueis.devolver.post');
-    });
-
 
 // =========================================================
 // PERFIL DO USUÁRIO (logado)
@@ -58,52 +36,45 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile',[ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-
 // =========================================================
-// ALMOXARIFADO (Admin + Responsável Ferramentas)
+// ROTAS ADMIN + RESPONSÁVEL FERRAMENTAS
 // =========================================================
-Route::middleware(['auth', 'role:responsavel_ferramentas,admin'])
+Route::middleware(['auth', 'role:admin,responsavel_ferramentas'])
     ->prefix('admin')
     ->group(function () {
 
-        Route::get('/almoxarifado', 
+        // -----------------------------
+        // ALMOXARIFADO
+        // -----------------------------
+        Route::get('/almoxarifado',
             [AlmoxarifadoController::class, 'index']
         )->name('almox.dashboard');
 
-    });
-
-
-// =========================================================
-// ROTAS ADMINISTRATIVAS (APENAS ADMIN)
-// =========================================================
-
-Route::middleware(['auth', 'role:admin'])
-    ->prefix('admin')
-    ->group(function () {
-
-        // Setores
-        Route::resource('setores', SetorController::class)
-            ->parameters(['setores' => 'setor']);
-
-        // Casas
-        Route::resource('casas', CasaController::class);
-
-        // Usuários
-        Route::resource('usuarios', UserController::class)
-            ->parameters(['usuarios' => 'usuario']);
-
-        // Ferramentas
+        // -----------------------------
+        // FERRAMENTAS (CRUD COMPLETO)
+        // -----------------------------
         Route::resource('ferramentas', FerramentaController::class);
 
-        // Aluguéis
+        // -----------------------------
+        // ALUGUÉIS (CRUD COMPLETO)
+        // -----------------------------
         Route::resource('alugueis', AluguelController::class)
             ->parameters(['alugueis' => 'aluguel']);
 
+        // -----------------------------
+        // FORMULÁRIO DE DEVOLUÇÃO (GET / POST)
+        // -----------------------------
+        Route::get('/alugueis/{aluguel}/devolver',
+            [AluguelController::class, 'formDevolver']
+        )->name('alugueis.devolver');
 
-        // =====================================================
-        // ITENS DO ALUGUEL → Ações individuais
-        // =====================================================
+        Route::post('/alugueis/{aluguel}/devolver',
+            [AluguelController::class, 'devolverPost']
+        )->name('alugueis.devolver.post');
 
+        // -----------------------------
+        // ITENS DO ALUGUEL (ações)
+        // -----------------------------
         Route::post('alugueis/item/{aluguelItem}/devolver',
             [AluguelItemController::class, 'devolver']
         )->name('alugueis.item.devolver');
@@ -115,12 +86,35 @@ Route::middleware(['auth', 'role:admin'])
         Route::post('alugueis/item/{aluguelItem}/perdido',
             [AluguelItemController::class, 'perdido']
         )->name('alugueis.item.perdido');
+    });
 
+// =========================================================
+// ROTAS APENAS ADMIN
+// =========================================================
+Route::middleware(['auth', 'role:admin'])
+    ->prefix('admin')
+    ->group(function () {
 
-        // =====================================================
+        // -----------------------------
+        // SETORES
+        // -----------------------------
+        Route::resource('setores', SetorController::class)
+            ->parameters(['setores' => 'setor']);
+
+        // -----------------------------
+        // CASAS
+        // -----------------------------
+        Route::resource('casas', CasaController::class);
+
+        // -----------------------------
+        // USUÁRIOS
+        // -----------------------------
+        Route::resource('usuarios', UserController::class)
+            ->parameters(['usuarios' => 'usuario']);
+
+        // -----------------------------
         // CONTRATOS
-        // =====================================================
-
+        // -----------------------------
         Route::get('contrato/gerar/{aluguel}',
             [ContratoController::class, 'gerar']
         )->name('contrato.gerar');
@@ -128,11 +122,9 @@ Route::middleware(['auth', 'role:admin'])
         Route::get('contratos/{contrato}',
             [ContratoController::class, 'show']
         )->name('contratos.show');
-
     });
 
-
 // =========================================================
-// AUTH FILE
+// AUTH
 // =========================================================
 require __DIR__.'/auth.php';
