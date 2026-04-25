@@ -70,14 +70,25 @@
                 </tbody>
             </table>
 
-            {{-- Link para download --}}
-            <div class="mt-8">
-                <a href="{{ asset('storage/'.$contrato->arquivo_pdf) }}"
-                   target="_blank"
-                   class="inline-flex items-center px-5 py-2 bg-indigo-600 text-white rounded-lg shadow hover:bg-indigo-700 transition">
-                    📄 Baixar PDF
-                </a>
-            </div>
+           {{-- Substitua a seção de download por: --}}
+<div class="mt-8 flex gap-3">
+    <a href="{{ route('contratos.download', $contrato) }}"
+       target="_blank"
+       class="inline-flex items-center px-5 py-2 bg-indigo-600 text-white rounded-lg shadow hover:bg-indigo-700 transition">
+        📄 Baixar PDF
+    </a>
+    
+    @if($contrato->aluguel->status !== 'devolvido')
+        <form action="{{ route('contratos.renovar', $contrato) }}" method="POST" class="inline">
+            @csrf
+            <button type="submit" 
+                    onclick="return confirm('Renovar este contrato? Uma nova versão será criada.')"
+                    class="inline-flex items-center px-5 py-2 bg-yellow-600 text-white rounded-lg shadow hover:bg-yellow-700 transition">
+                🔄 Renovar Contrato
+            </button>
+        </form>
+    @endif
+</div>
 
         </div>
 

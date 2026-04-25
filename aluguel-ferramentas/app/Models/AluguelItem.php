@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\SetorScopable;
 
 class AluguelItem extends Model
 {
+    use SetorScopable;  // ADICIONE ISSO
     protected $table = 'aluguel_itens'; // opcional, mas recomendado
 
  protected $fillable = [

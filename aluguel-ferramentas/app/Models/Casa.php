@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\SetorScopable;
 
 class Casa extends Model
 {
+     use SetorScopable;  // ADICIONE ISSO
     protected $table = 'casas';   // <- importante
     protected $primaryKey = 'id';
     

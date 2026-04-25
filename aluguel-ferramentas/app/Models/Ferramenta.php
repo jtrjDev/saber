@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\SetorScopable;
 
 class Ferramenta extends Model
 {
+     use SetorScopable;  // ADICIONE ISSO
     protected $fillable = [
         'nome',
         'foto',

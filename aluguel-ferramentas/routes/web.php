@@ -86,6 +86,25 @@ Route::middleware(['auth', 'role:admin,responsavel_ferramentas'])
         Route::post('alugueis/item/{aluguelItem}/perdido',
             [AluguelItemController::class, 'perdido']
         )->name('alugueis.item.perdido');
+        
+        // -----------------------------
+        // CONTRATOS (MOVED PARA CÁ - ADMIN + RESPONSÁVEL)
+        // -----------------------------
+        Route::get('contrato/gerar/{aluguel}',
+            [ContratoController::class, 'gerar']
+        )->name('contrato.gerar');
+
+        Route::get('contratos/{contrato}',
+            [ContratoController::class, 'show']
+        )->name('contratos.show');
+        
+        Route::get('contratos/{contrato}/download',
+            [ContratoController::class, 'download']
+        )->name('contratos.download');
+        
+        Route::post('contratos/{contrato}/renovar',
+            [ContratoController::class, 'renovar']
+        )->name('contratos.renovar');
     });
 
 // =========================================================
@@ -112,16 +131,6 @@ Route::middleware(['auth', 'role:admin'])
         Route::resource('usuarios', UserController::class)
             ->parameters(['usuarios' => 'usuario']);
 
-        // -----------------------------
-        // CONTRATOS
-        // -----------------------------
-        Route::get('contrato/gerar/{aluguel}',
-            [ContratoController::class, 'gerar']
-        )->name('contrato.gerar');
-
-        Route::get('contratos/{contrato}',
-            [ContratoController::class, 'show']
-        )->name('contratos.show');
     });
 
 // =========================================================

@@ -9,17 +9,11 @@ use Illuminate\Pagination\Paginator;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
     public function register(): void
     {
         //
     }
 
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
     {
         Paginator::useTailwind();
@@ -31,16 +25,23 @@ class AppServiceProvider extends ServiceProvider
             if (str_starts_with((string) config('app.url'), 'https://')) {
                 URL::forceScheme('https');
             }
+
+            // Força a paginação a usar a URL pública do Codespaces
+            Paginator::currentPathResolver(function () {
+                return rtrim(config('app.url'), '/') . request()->getPathInfo();
+            });
         }
 
-       Blade::if('role', function ($roles) {
-    $user = auth()->user();
-    if (!$user) return false;
+        Blade::if('role', function ($roles) {
+            $user = auth()->user();
 
-    $roles = is_array($roles) ? $roles : [$roles];
+            if (!$user) {
+                return false;
+            }
 
-    return in_array($user->role, $roles);
-});
+            $roles = is_array($roles) ? $roles : [$roles];
 
+            return in_array($user->role, $roles);
+        });
     }
 }

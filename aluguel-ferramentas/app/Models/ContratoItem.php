@@ -3,10 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\SetorScopable;
 
 class ContratoItem extends Model
 {
-   protected $table = 'contrato_items';
+    use SetorScopable;  // ADICIONE ISSO
+    protected $table = 'contrato_items';
 
 
     protected $fillable = [
