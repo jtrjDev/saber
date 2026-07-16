@@ -1,0 +1,42 @@
+services:
+    app:
+        build:
+            context: .
+            dockerfile: Dockerfile
+
+        volumes:
+            - ..:/workspaces/saber:cached
+
+        command: sleep infinity
+
+        depends_on:
+            mysql:
+                condition: service_healthy
+
+    mysql:
+        image: mysql:8.4
+
+        restart: unless-stopped
+
+        environment:
+            MYSQL_DATABASE: aluguel_ferramentas
+            MYSQL_USER: laravel
+            MYSQL_PASSWORD: laravel
+            MYSQL_ROOT_PASSWORD: root
+
+        volumes:
+            - mysql-data:/var/lib/mysql
+
+        healthcheck:
+            test:
+                [
+                    "CMD-SHELL",
+                    "mysqladmin ping -h localhost -uroot -proot --silent"
+                ]
+            interval: 5s
+            timeout: 5s
+            retries: 30
+            start_period: 20s
+
+volumes:
+    mysql-data:

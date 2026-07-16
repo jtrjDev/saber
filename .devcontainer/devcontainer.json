@@ -1,0 +1,37 @@
+{
+    "name": "Laravel PHP 8.3 + MySQL",
+
+    "dockerComposeFile": "docker-compose.yml",
+
+    "service": "app",
+
+    "workspaceFolder": "/workspaces/saber",
+
+    "features": {
+        "ghcr.io/devcontainers/features/node:1": {
+            "version": "lts"
+        }
+    },
+
+    "forwardPorts": [
+        8000,
+        5173
+    ],
+
+    "portsAttributes": {
+        "8000": {
+            "label": "Laravel",
+            "onAutoForward": "openBrowser"
+        },
+        "5173": {
+            "label": "Vite",
+            "onAutoForward": "silent"
+        }
+    },
+
+    "postCreateCommand": "bash /workspaces/saber/.devcontainer/post-create.sh",
+
+    "remoteUser": "vscode",
+
+    "shutdownAction": "stopCompose"
+}web

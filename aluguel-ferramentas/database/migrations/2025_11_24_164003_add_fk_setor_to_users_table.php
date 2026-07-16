@@ -1,30 +1,18 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
-   public function up()
-{
-    Schema::table('users', function (Blueprint $table) {
-        // Se o setor_id existir e ainda não tiver FK:
-        $table->foreign('setor_id')
-              ->references('id')
-              ->on('setores')
-              ->nullOnDelete();
-    });
-}
+    public function up(): void
+    {
+        // A foreign key de setor_id já foi criada
+        // na migration 2025_11_24_132005_add_campos_to_users_table.
+    }
 
-public function down()
-{
-    Schema::table('users', function (Blueprint $table) {
-        $table->dropForeign(['setor_id']);
-    });
-}
-
+    public function down(): void
+    {
+        // Não remover a foreign key aqui,
+        // pois ela pertence à migration anterior.
+    }
 };
